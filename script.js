@@ -3,6 +3,7 @@
 const board = document.getElementById('game-board');
 const instructionText = document.getElementById('instructions');
 const logo = document.getElementById('logo');
+const score = document.getElementById('score');
 
 // Definindo variaveis do jogo 
 const gridSize = 20;
@@ -12,6 +13,7 @@ let direction = 'right';
 let gameInterval;
 let gameSpeedDelay = 200;
 let gameStarted = false;
+
 
 
 // Cria algum elemento do joogo (uma cobra ou cubo de comida)
@@ -35,6 +37,7 @@ function draw(){
     board.innerHTML ='';
     drawSnake();
     drawFood();
+    updateScore();
 }
 
 //Desenha cobra
@@ -72,14 +75,51 @@ function move(){
 
     if(head.x === food.x && head.y === food.y){//se acertar a comida
         food = generateFood();//nova comida é gerada
-        clearInterval();// "limpa" o ultimo intervalo
+        speedControl   ();
+        clearInterval(gameInterval);// "limpa" o ultimo intervalo
         gameInterval = setInterval(() =>{
             move();
+            //checkCollison();
             draw();
         }, gameSpeedDelay);
     } else {
         snake.pop();//remove o ultimo pedaço da cobra do array pra dar a ilusão de movimento e a cobra não cresce
     }
+}
+
+function speedControl() {
+    console.log(gameSpeedDelay);
+    if(gameSpeedDelay >150) {
+        gameSpeedDelay -=5;
+    }else if (gameSpeedDelay >100){
+        gameSpeedDelay -=3;
+    }else if (gameSpeedDelay > 50) {
+        gameSpeedDelay -=2;
+    } else if (gameSpeedDelay > 25) {
+        gameSpeedDelay -=1;
+    }
+}
+
+function checkCollision() {
+    const head = snake[0];
+
+    if (head.x <1 || head.x >gridSize|| head.y <1 || head.y > gridSize ){
+        resetGame();
+    }
+    for (let i=0; i<snake.length; i++){
+        if (head.x === snake[i].x && head.y === snake[i].y ){
+            resetGame();
+        }
+    }
+
+}
+
+
+
+function updateScore(){
+    const currentScore = snake.length -1;
+    score.textContent = currentScore.toString().padStart(3,'0');
+
 }
 
 
@@ -119,7 +159,7 @@ function handleKeyPress(event){
     }
 }
 
-document.addEventListener('keydown', handleKeyPress);
+
 
 function startGame() {
     gameStarted = true;
@@ -127,8 +167,16 @@ function startGame() {
     logo.style.display ='none';
     gameInterval = setInterval(() => {
         move();
-        //checkCollision();
+        checkCollision();
         draw();
     }, gameSpeedDelay);
 }
+function resetGame(){
+    snake = [{x:10, y:10}];
+    food = generateFood();
+    direction = 'right';
+    gameSpeedDelay =200;
+    updateScore();
+}
 
+document.addEventListener('keydown', handleKeyPress);
